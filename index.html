@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Examen Biología - Ciclo Celular</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;text-align:center;padding:20px}
+.container{background:white;padding:20px;border-radius:10px;max-width:600px;margin:auto}
+button{padding:10px 20px;margin-top:10px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container" id="inicio">
+<h2>Registro</h2>
+<input type="text" id="nombre" placeholder="Nombre"><br><br>
+<input type="text" id="cuenta" placeholder="Número de cuenta"><br><br>
+<button onclick="iniciarExamen()">Iniciar examen</button>
+</div>
+
+<div class="container hidden" id="examen">
+<h3 id="pregunta"></h3>
+<div id="opciones"></div>
+<p>Tiempo restante: <span id="timer">65</span> s</p>
+</div>
+
+<div class="container hidden" id="resultado">
+<h2>Resultado</h2>
+<p id="calificacion"></p>
+<button onclick="descargarPDF()">Descargar PDF</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const preguntas = [
+{q:"¿Función de G1?",o:["División","Síntesis ADN","Crecimiento","Separación"],r:2},
+{q:"¿Qué ocurre en fase S?",o:["Mitosis","Duplicación ADN","Apoptosis","Citocinesis"],r:1},
+{q:"¿Verificación antes de mitosis?",o:["G1","S","G2","M"],r:2},
+{q:"Orden correcto",o:["G1-G2-S-M","G1-S-G2-M","S-G1-G2-M","G2-G1-S-M"],r:1},
+{q:"Punto de control G1",o:["Separar","Evaluar ADN","Iniciar replicación","Huso"],r:1},
+{q:"Citocinesis",o:["Núcleo","ADN","Citoplasma","Cromosomas"],r:2},
+{q:"Metafase",o:["Separación","Núcleo","Alineación","Duplicación"],r:2},
+{q:"Estructura ADN",o:["Simple","Doble hélice","Triple","Circular"],r:1},
+{q:"Bases complementarias",o:["A-G","A-T","A-C","T-G"],r:1},
+{q:"Enlace bases",o:["Covalente","Iónico","Hidrógeno","Metálico"],r:2},
+{q:"Función ADN",o:["Proteínas","Info genética","Transporte","Energía"],r:1},
+{q:"Enzima replicación",o:["ARN pol","Ligasa","ADN pol","Helicasa"],r:2},
+{q:"Replicación",o:["Destruye","Semiconservativa","Proteínas","Tres cadenas"],r:1},
+{q:"Nucleótido",o:["Aminoácido","Base+azúcar+fosfato","Proteína","ARN"],r:1},
+{q:"Diferencia ARN",o:["Timina","Uracilo ADN","Monocatenario","Sin azúcar"],r:2},
+{q:"Transporta aa",o:["ARNm","ARNr","ARNt","ADN"],r:2},
+{q:"Función ARNm",o:["Ribosoma","Info ADN","Lípidos","Replicación"],r:1},
+{q:"Base ARN",o:["Timina","Adenina","Uracilo","Guanina"],r:2},
+{q:"Síntesis ARN",o:["Citoplasma","Núcleo","Membrana","Mitocondria"],r:1},
+{q:"ADN a ARN",o:["Traducción","Replicación","Transcripción","Mutación"],r:2}
+];
+
+let actual=0,correctas=0,tiempo=65,intervalo;
+
+function iniciarExamen(){
+if(!document.getElementById("nombre").value||!document.getElementById("cuenta").value){alert("Completa los datos");return}
+document.getElementById("inicio").classList.add("hidden");
+document.getElementById("examen").classList.remove("hidden");
+mostrarPregunta();
+}
+
+function mostrarPregunta(){
+if(actual>=preguntas.length){finalizar();return}
+let p=preguntas[actual];
+document.getElementById("pregunta").innerText=p.q;
+let opcionesHTML="";
+p.o.forEach((op,i)=>{opcionesHTML+=`<button onclick="responder(${i})">${op}</button><br>`});
+document.getElementById("opciones").innerHTML=opcionesHTML;
+tiempo=65;
+document.getElementById("timer").innerText=tiempo;
+intervalo=setInterval(()=>{
+tiempo--;
+document.getElementById("timer").innerText=tiempo;
+if(tiempo<=0){clearInterval(intervalo);actual++;mostrarPregunta();}
+},1000);
+}
+
+function responder(i){
+clearInterval(intervalo);
+if(i===preguntas[actual].r) correctas++;
+actual++;
+mostrarPregunta();
+}
+
+function finalizar(){
+document.getElementById("examen").classList.add("hidden");
+document.getElementById("resultado").classList.remove("hidden");
+let cal=(correctas/preguntas.length)*10;
+document.getElementById("calificacion").innerText=`Calificación: ${cal.toFixed(2)}`;
+}
+
+function descargarPDF(){
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+let nombre=document.getElementById("nombre").value;
+let cuenta=document.getElementById("cuenta").value;
+let texto=`Nombre: ${nombre}\nCuenta: ${cuenta}\nCalificación: ${(correctas/preguntas.length*10).toFixed(2)}`;
+doc.text(texto,10,10);
+doc.save("resultado.pdf");
+}
+</script>
+</body>
+</html>
